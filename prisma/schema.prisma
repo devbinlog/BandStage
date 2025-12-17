@@ -1,0 +1,342 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+//
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+//
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  FAN
+  ARTIST
+  VENUE
+  ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TicketStatus {
+  UNPAID
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum TicketTypeCategory {
+  GENERAL
+  VIP
+  EARLY_BIRD
+  OTHER
+}
+
+enum SuggestionStatus {
+  NEW
+  REVIEWING
+  APPROVED
+  REJECTED
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum BandMemberRole {
+  VOCAL
+  GUITAR
+  BASS
+  DRUMS
+  KEYS
+  PRODUCER
+  MANAGER
+  OTHER
+}
+
+model User {
+  id                String             @id @default(cuid())
+  email             String?            @unique
+  emailVerified     DateTime?
+  password          String?
+  name              String?
+  displayName       String?
+  image             String?
+  role              Role               @default(FAN)
+  bio               String?
+  location          String?
+  phone             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  accounts          Account[]
+  sessions          Session[]
+  bands             BandMember[]
+  ownedBands        Band[]             @relation("BandOwner")
+  venues            Venue[]            @relation("VenueManager")
+  events            Event[]            @relation("EventOwner")
+  tickets           Ticket[]
+  communityPosts    CommunityPost[]
+  communityComments CommunityComment[]
+  venueSuggestions  VenueSuggestion[]
+  reportsFiled      Report[]           @relation("ReportAuthor")
+  reportsReviewed   Report[]           @relation("ReportReviewer")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+  oauth_token_secret String?
+  oauth_token        String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Band {
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  genre          String?
+  region         String?
+  description    String?
+  coverImage     String?
+  ownerId        String?
+  owner          User?            @relation("BandOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  members        BandMember[]
+  events         Event[]
+  communityPosts CommunityPost[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model BandMember {
+  id         String         @id @default(cuid())
+  bandId     String
+  userId     String?
+  name       String
+  role       BandMemberRole @default(OTHER)
+  instrument String?
+  sortOrder  Int            @default(0)
+  band       Band           @relation(fields: [bandId], references: [id], onDelete: Cascade)
+  user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([bandId])
+  @@index([userId])
+}
+
+model Venue {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String?
+  addressLine1  String?
+  addressLine2  String?
+  district      String?
+  city          String?
+  postalCode    String?
+  phone         String?
+  email         String?
+  website       String?
+  naverMapUrl   String?
+  capacityMin   Int?
+  capacityMax   Int?
+  tags          String[]
+  amenities     String[]
+  bookingPolicy String?
+  notes         String?
+  managerId     String?
+  manager       User?    @relation("VenueManager", fields: [managerId], references: [id], onDelete: SetNull)
+  events        Event[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([managerId])
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  summary     String?
+  description String?
+  coverImage  String?
+  status      EventStatus @default(DRAFT)
+  startsAt    DateTime
+  endsAt      DateTime?
+  timezone    String      @default("Asia/Seoul")
+  publishedAt DateTime?
+  venueId     String?
+  bandId      String?
+  ownerId     String?
+  genre       String?
+  ageLimit    String?
+  ticketNote  String?
+  externalUrl String?
+  venue       Venue?      @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  band        Band?       @relation(fields: [bandId], references: [id], onDelete: SetNull)
+  owner       User?       @relation("EventOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  ticketTypes TicketType[]
+  tickets     Ticket[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([venueId])
+  @@index([bandId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([startsAt])
+}
+
+model TicketType {
+  id           String             @id @default(cuid())
+  eventId      String
+  name         String
+  description  String?
+  category     TicketTypeCategory @default(GENERAL)
+  price        Decimal?           @db.Decimal(10, 2)
+  currency     String             @default("KRW")
+  quantity     Int
+  remaining    Int
+  perUserLimit Int?               @default(4)
+  salesStart   DateTime?
+  salesEnd     DateTime?
+  event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets      Ticket[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([eventId])
+}
+
+model Ticket {
+  id           String       @id @default(cuid())
+  ticketTypeId String
+  eventId      String
+  userId       String
+  status       TicketStatus @default(PENDING)
+  quantity     Int          @default(1)
+  totalAmount  Decimal?     @db.Decimal(10, 2)
+  paymentRef   String?
+  metadata     Json?
+  ticketType   TicketType   @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([ticketTypeId])
+  @@index([eventId])
+  @@index([userId])
+}
+
+model VenueSuggestion {
+  id            String           @id @default(cuid())
+  name          String
+  address       String?
+  contact       String?
+  naverMapUrl   String?
+  notes         String?
+  status        SuggestionStatus @default(NEW)
+  submittedById String?
+  submittedBy   User?            @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status])
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  bandId    String
+  authorId  String
+  title     String
+  content   String   @db.Text
+  isPinned  Boolean  @default(false)
+  comments  CommunityComment[]
+  band      Band     @relation(fields: [bandId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bandId])
+  @@index([authorId])
+}
+
+model CommunityComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String   @db.Text
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  targetType String
+  targetId   String
+  reason     String
+  details    String?
+  status     ReportStatus @default(OPEN)
+  reporterId String?
+  reviewerId String?
+  reporter   User?        @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: SetNull)
+  reviewer   User?        @relation("ReportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  resolvedAt DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([status])
+  @@index([reporterId])
+  @@index([reviewerId])
+}
