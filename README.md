@@ -1,17 +1,38 @@
-# Band-Stage Platform
+# BandStage
 
-Band-Stage는 밴드 중심의 공연 기획·홍보·예매 경험을 한 곳에서 제공하기 위한 풀스택 앱입니다. 이 저장소는 Next.js(App Router) + Prisma + Supabase PostgreSQL + NextAuth 기반으로 구성되어 있으며, 대부분의 데이터 읽기/쓰기는 Server Component & Server Action에서 처리하고 필요 시 API Route Handler를 사용합니다.
+BandStage는 인디/취미 밴드의 공연 운영이 공연 업로드 -> 공연 찾기 -> 포스터 제작 → 카톡/구글폼 티켓 예매 → SNS 홍보 → 장소 공유처럼 분산되는 문제를 
+공연 업로드, 공연 조회/검색, 티켓/포스터 제작(결제) 흐름으로 통합한 공연 플랫폼입니다.
+
+- 형태: Personal Project
+- 기간: 2024.08 ~ Present
+
+## Demo
+- Live: [배포 링크]
+- Preview: (GIF/스크린샷)
+  - 메인
+  - 공연 업로드
+  - 공연 검색(필터)
+
+## 현재 구현 범위
+### 현재 완료
+- 메인 페이지
+- 공연 업로드
+- 공연 검색: 키워드/지역/날짜(또는 장르) 기반 필터 탐색
+
+### 남은 진행 상황
+- 포스터/티켓 제작 페이지
+- 결제 연동
+
 
 ## Tech Stack
-- **Next.js 16 / React 19** – App Router, Server Component, Server Action 중심
-- **Prisma ORM** – `src/generated/prisma`에 클라이언트가 생성됨
-- **Supabase PostgreSQL** – Production/Postgres 호스팅(접속은 `DATABASE_URL`)
-- **NextAuth (Auth.js)** – Google OAuth + Credentials, `User.role` 기반 접근 제어
-- **Tailwind CSS v4** – 전역 스타일 및 컴포넌트 스타일링
-- **Vercel Deployment** – Node.js 런타임, 필요 시 Edge Function/Serverless 병행
+- Frontend: Next.js 16 / React 19
+- Backend: Prisma, Supabase PostgreSQL
+- NextAuth (Auth.js) – Google OAuth + Credentials, `User.role` 기반 접근 제어
+- Tailwind CSS v4 – 전역 스타일 및 컴포넌트 스타일링
+- Vercel Deployment – Node.js 런타임, 필요 시 Edge Function/Serverless 병행
 
 ## Local Development
-1. **환경 변수 준비**
+1. 환경 변수 준비
    ```bash
    cp .env.local.example .env.local
    # DATABASE_URL, NEXTAUTH_SECRET 등을 실제 값으로 채워 넣기
@@ -20,20 +41,20 @@ Band-Stage는 밴드 중심의 공연 기획·홍보·예매 경험을 한 곳�
    - `NEXTAUTH_SECRET`는 최소 16자 이상의 랜덤 문자열을 사용하세요 (`openssl rand -base64 32`).
    - Google OAuth를 사용할 경우 `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`을 발급 받아 입력합니다.
 
-2. **의존성 설치 & Prisma Client 생성**
+2. 의존성 설치 & Prisma Client 생성
    ```bash
    npm install
    npm run db:generate   # prisma generate
    ```
 
-3. **DB 동기화**
+3. DB 동기화
    로컬 개발 시 스키마를 DB에 반영하려면:
    ```bash
    npm run db:push       # prisma db push
    # 혹은 마이그레이션을 생성하려면 npm run db:migrate
    ```
 
-4. **개발 서버 실행**
+4. 개발 서버 실행
    ```bash
    npm run dev
    ```
