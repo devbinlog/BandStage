@@ -37,32 +37,47 @@ Database
 
 ## Architecture
 Client
-↓
+->
 Next.js (App Router)
-↓
+->
 API Routes (Auth / Event / Band)
-↓
+->
 Prisma ORM
-↓
+->
 Supabase DB
 
 
 ## Quick Start
 ``bash
+
 git clone https://github.com/devbinlog/BandStage.git
+
 cd BandStage
+
 npm install
+
 npm run dev
+
 Environment Variables
+
 DATABASE_URL=
+
 NEXTAUTH_SECRET=
+
 Project Structure
+
 /app
+
 /api
+
 /components
+
 /lib
+
 /prisma
+
 What I Focused On
+
 권한(Role) 분리를 통한 데이터 접근 안정성 확보
 
 환경 변수 누락 시 즉시 실패하도록 설계
