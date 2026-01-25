@@ -1,4 +1,4 @@
-# BandStage
+# BandStage - 미완성(현재 진행중)
 
 ## Overview
 BandStage는 인디 밴드와 소규모 공연 팀을 위한 공연 정보 관리 및 탐색 플랫폼입니다.  
