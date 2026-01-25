@@ -1,95 +1,78 @@
 # BandStage
 
-BandStage는 인디/취미 밴드의 공연 운영이 공연 업로드 -> 공연 찾기 -> 포스터 제작 → 카톡/구글폼 티켓 예매 → SNS 홍보 → 장소 공유처럼 분산되는 문제를 
-공연 업로드, 공연 조회/검색, 티켓/포스터 제작(결제) 흐름으로 통합한 공연 플랫폼입니다.
+## Overview
+BandStage는 인디 밴드와 소규모 공연 팀을 위한 공연 정보 관리 및 탐색 플랫폼입니다.  
+분산되어 있던 공연 정보(포스터, 일정, 장소, 밴드 정보)를 하나의 흐름으로 통합하여  
+공연 등록 → 공연 탐색 → 포스터/티켓 제작 및 홍보까지 이어지는 구조를 제공합니다.
 
-- 형태: Personal Project
-- 기간: 2024.08 ~ Present
+## Problem
+- 공연 정보가 SNS, 포스터, 메신저 등 여러 채널에 분산됨
+- 밴드와 공연 팀은 관리가 어렵고, 관객은 탐색 비용이 큼
+- 권한 분리(관리자/일반 사용자)가 명확하지 않은 경우가 많음
 
-## Demo
-- Live: [배포 링크]
-- Preview: (GIF/스크린샷)
-  - 메인
-  - 공연 업로드
-  - 공연 검색(필터)
+## Solution
+- 공연(Event) 중심의 데이터 모델 설계
+- 역할(Role) 기반 접근 제어로 관리와 조회 분리
+- 환경 변수 검증과 인증 미들웨어를 통한 운영 안정성 확보
 
-## 현재 구현 범위
-### 현재 완료
-- 메인 페이지
-- 공연 업로드
-- 공연 검색: 키워드/지역/날짜(또는 장르) 기반 필터 탐색
-
-### 남은 진행 상황
-- 포스터/티켓 제작 페이지
-- 결제 연동
-
+## Key Features
+- 공연(Event) 등록 및 관리
+- 밴드 및 장소 정보 관리
+- Role 기반 인증과 인가
+- 환경 변수 검증(Zod)
+- Vercel 기반 배포 구조
 
 ## Tech Stack
-- Frontend: Next.js 16 / React 19
-- Backend: Prisma, Supabase PostgreSQL
-- NextAuth (Auth.js) – Google OAuth + Credentials, `User.role` 기반 접근 제어
-- Tailwind CSS v4 – 전역 스타일 및 컴포넌트 스타일링
-- Vercel Deployment – Node.js 런타임, 필요 시 Edge Function/Serverless 병행
+Frontend  
+- Next.js  
+- TypeScript  
+- Tailwind CSS  
 
-## Local Development
-1. 환경 변수 준비
-   ```bash
-   cp .env.local.example .env.local
-   # DATABASE_URL, NEXTAUTH_SECRET 등을 실제 값으로 채워 넣기
-   ```
-   - Supabase 프로젝트에서 `Connection string`을 복사해 `DATABASE_URL`/`DIRECT_URL`에 입력합니다.
-   - `NEXTAUTH_SECRET`는 최소 16자 이상의 랜덤 문자열을 사용하세요 (`openssl rand -base64 32`).
-   - Google OAuth를 사용할 경우 `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`을 발급 받아 입력합니다.
+Backend  
+- Next.js API Routes  
+- Prisma ORM  
 
-2. 의존성 설치 & Prisma Client 생성
-   ```bash
-   npm install
-   npm run db:generate   # prisma generate
-   ```
+Database  
+- Supabase (PostgreSQL)
 
-3. DB 동기화
-   로컬 개발 시 스키마를 DB에 반영하려면:
-   ```bash
-   npm run db:push       # prisma db push
-   # 혹은 마이그레이션을 생성하려면 npm run db:migrate
-   ```
+## Architecture
+Client
+↓
+Next.js (App Router)
+↓
+API Routes (Auth / Event / Band)
+↓
+Prisma ORM
+↓
+Supabase DB
 
-4. 개발 서버 실행
-   ```bash
-   npm run dev
-   ```
 
-## Auth & 보안
-- `src/auth.ts`에서 NextAuth가 설정되어 있으며, Google OAuth와 Credentials Provider(이메일/비밀번호 해시) 모두 지원합니다.
-- `types/next-auth.d.ts`에서 Session/JWT 타입을 확장하여 `user.role`과 `user.id`를 everywhere에서 사용할 수 있습니다.
-- `middleware.ts`는 `/me`, `/events/new`, `/admin` 경로를 기본 보호 대상으로 지정합니다. 필요 시 matcher 배열을 확장하세요.
-- 서버 전용 환경 변수는 `src/lib/env.ts`의 Zod 스키마를 통과해야 하며, 부족한 값이 있으면 애플리케이션이 부팅되지 않습니다.
+## Quick Start
+``bash
+git clone https://github.com/devbinlog/BandStage.git
+cd BandStage
+npm install
+npm run dev
+Environment Variables
+DATABASE_URL=
+NEXTAUTH_SECRET=
+Project Structure
+/app
+/api
+/components
+/lib
+/prisma
+What I Focused On
+권한(Role) 분리를 통한 데이터 접근 안정성 확보
 
-## Server Actions & API
-- `src/server/actions/venue-suggestions.ts` 예시처럼 Server Action을 기본으로 사용하고, 클라이언트 폼에서 직접 호출할 수 있습니다.
-- 재사용 가능한 입력 검증은 `src/lib/validators` 폴더에 추가하세요.
-- API Route Handler가 필요하다면 `src/app/api/*` 경로에 생성하고, 가능하면 `auth()` 또는 NextAuth 미들웨어를 이용해 보호합니다.
+환경 변수 누락 시 즉시 실패하도록 설계
 
-## 배포(Vercel)
-1. Vercel 프로젝트를 생성하고 GitHub 저장소를 연결합니다.
-2. Vercel 환경 변수 탭에 `.env.local`과 동일한 키를 입력합니다. (Production/Preview/Development 환경을 각각 분리)
-3. `npm run db:migrate`로 Supabase에 스키마를 적용한 후 배포합니다.
-4. 커스텀 도메인은 Vercel Dashboard에서 연결하면 됩니다.
+실제 운영 가능한 서비스 구조 설계
 
-## 유용한 npm 스크립트
-| 명령어 | 설명 |
-| --- | --- |
-| `npm run dev` | 로컬 개발 서버 (Next.js) |
-| `npm run build` | 프로덕션 빌드 |
-| `npm run lint` / `npm run lint:fix` | ESLint 검사/자동수정 |
-| `npm run db:generate` | Prisma Client 재생성 |
-| `npm run db:push` | Prisma 스키마를 DB에 반영 (테이블 생성/수정) |
-| `npm run db:migrate` | 마이그레이션 생성 및 적용 |
-| `npm run db:studio` | Prisma Studio 실행 |
+## Future Work
+1. 포스터/티켓 제작 기능 추가
 
-## 다음 단계
-- /, /venues, /events, /bands 등 메인 페이지 UI 구성
-- 서버 액션을 각 폼(공연장 제보, 공연 등록 등)에 연결
-- 역할(Role) 기반 관리자/아티스트/팬 경험 강화
+2. 검색 성능 개선
 
-필요한 추가 설정이나 자동화가 있다면 `/docs` 디렉터리를 만들어 확장할 수 있습니다.
+3. 관리자 대시보드 고도화
+
