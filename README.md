@@ -1,93 +1,349 @@
-# BandStage - 미완성(현재 진행중)
+# BandStage
 
-## Overview
-BandStage는 인디 밴드와 소규모 공연 팀을 위한 공연 정보 관리 및 탐색 플랫폼입니다.  
-분산되어 있던 공연 정보(포스터, 일정, 장소, 밴드 정보)를 하나의 흐름으로 통합하여  
-공연 등록 → 공연 탐색 → 포스터/티켓 제작 및 홍보까지 이어지는 구조를 제공합니다.
+지역 기반 인디 밴드 공연 탐색 및 공연장 플랫폼
 
-## Problem
-- 공연 정보가 SNS, 포스터, 메신저 등 여러 채널에 분산됨
-- 밴드와 공연 팀은 관리가 어렵고, 관객은 탐색 비용이 큼
-- 권한 분리(관리자/일반 사용자)가 명확하지 않은 경우가 많음
+Band Stage는 인디 밴드 공연과 공연장을 지역 중심으로 탐색하고, 밴드와 공연 주최자가 직접 공연을 등록하고 관리할 수 있도록 설계된 라이브 공연 플랫폼입니다.
 
-## Solution
-- 공연(Event) 중심의 데이터 모델 설계
-- 역할(Role) 기반 접근 제어로 관리와 조회 분리
-- 환경 변수 검증과 인증 미들웨어를 통한 운영 안정성 확보
+기존 공연 정보는 SNS나 커뮤니티에 분산되어 있어 지역 공연을 찾기 어렵고, 소규모 공연장은 체계적인 홍보 채널이 부족한 문제가 있습니다.
 
-## Key Features
-- 공연(Event) 등록 및 관리
-- 밴드 및 장소 정보 관리
-- Role 기반 인증과 인가
-- 환경 변수 검증(Zod)
-- Vercel 기반 배포 구조
+Band Stage는 이러한 문제를 해결하기 위해 지역 기반 공연장 리스트업과 공연 탐색 시스템을 중심으로 설계된 플랫폼입니다.
 
-## Tech Stack
-Frontend  
-- Next.js  
-- TypeScript  
-- Tailwind CSS  
+Project Overview
 
-Backend  
-- Next.js API Routes  
-- Prisma ORM  
+Band Stage는 다음 세 가지 핵심 기능을 중심으로 설계되었습니다.
 
-Database  
-- Supabase (PostgreSQL)
+지역 기반 공연 탐색
 
-## Architecture
-Client
-->
-Next.js (App Router)
-->
-API Routes (Auth / Event / Band)
-->
+공연장 데이터 구조화
+
+밴드 및 공연 등록 시스템
+
+사용자는 지역별 공연과 공연장을 탐색할 수 있으며,
+밴드나 공연 주최자는 공연 정보를 직접 등록하고 관리할 수 있습니다.
+
+또한 공연장 정보를 구조화하여 지역 → 공연장 → 공연 → 예약 흐름으로 공연을 탐색할 수 있도록 설계했습니다.
+
+Core Features
+1. 지역 기반 공연 탐색
+
+사용자는 지역을 기준으로 공연을 탐색할 수 있습니다.
+
+지역별 공연 목록
+
+날짜 기반 공연 필터
+
+장르 필터
+
+공연장 기반 필터
+
+인기 공연 / 최신 공연 정렬
+
+이 기능을 통해 특정 지역에서 열리는 공연을 빠르게 찾을 수 있습니다.
+
+2. 공연장 데이터 구조화
+
+Band Stage의 핵심 기능은 공연장 중심 탐색 구조입니다.
+
+공연장 데이터에는 다음 정보가 포함됩니다.
+
+공연장 이름
+
+주소
+
+지역 정보
+
+좌표 (지도 확장 가능)
+
+수용 인원
+
+시설 정보
+
+공연장 소개
+
+공연장 이미지
+
+공연장 상세 페이지에서는 다음 정보를 확인할 수 있습니다.
+
+해당 공연장에서 열리는 예정 공연
+
+과거 공연 기록
+
+시설 및 공간 정보
+
+공연장 위치
+
+이를 통해 사용자는 공연을 찾는 것뿐 아니라 공연장 자체를 탐색할 수 있습니다.
+
+3. 공연 등록 시스템
+
+밴드 및 공연 주최자는 공연 정보를 직접 등록할 수 있습니다.
+
+등록 가능한 정보
+
+공연 제목
+
+공연 포스터
+
+공연 날짜 및 시간
+
+공연장 선택
+
+출연 밴드
+
+공연 설명
+
+티켓 가격
+
+관람 연령 제한
+
+공지 사항
+
+공연 등록 후 공연 페이지가 생성되며 사용자에게 공개됩니다.
+
+4. 공연 상세 페이지
+
+공연 상세 페이지에서는 다음 정보를 제공합니다.
+
+공연 포스터
+
+공연 일정
+
+공연장 정보
+
+출연 밴드
+
+공연 설명
+
+티켓 정보
+
+예약 가능 여부
+
+사용자는 해당 공연 페이지에서 예약 정보를 확인할 수 있습니다.
+
+5. 사용자 기능
+
+사용자는 다음 기능을 사용할 수 있습니다.
+
+공연 북마크
+
+공연장 북마크
+
+예약 내역 관리
+
+프로필 관리
+
+6. 주최자 / 밴드 관리 기능
+
+밴드 또는 공연 주최자는 다음 기능을 사용할 수 있습니다.
+
+밴드 프로필 생성
+
+공연 등록
+
+공연 수정 및 취소
+
+공연 예약 관리
+
+이를 통해 공연 운영자가 직접 공연 정보를 관리할 수 있습니다.
+
+7. 관리자 기능
+
+플랫폼 운영을 위한 관리자 기능이 포함되어 있습니다.
+
+관리자는 다음 작업을 수행할 수 있습니다.
+
+사용자 관리
+
+밴드 관리
+
+공연 관리
+
+공연장 관리
+
+신고 및 운영 이슈 관리
+
+지역 및 장르 분류 관리
+
+Information Architecture
+
+Band Stage는 다음 구조로 설계되었습니다.
+
+Home
+ ├ 공연 탐색
+ │ ├ 공연 목록
+ │ └ 공연 상세
+ │
+ ├ 공연장 탐색
+ │ ├ 공연장 목록
+ │ └ 공연장 상세
+ │
+ ├ 밴드 탐색
+ │ ├ 밴드 목록
+ │ └ 밴드 상세
+ │
+ ├ 지역 페이지
+ │ ├ 지역 공연
+ │ └ 지역 공연장
+ │
+ ├ 사용자 페이지
+ │ ├ 마이페이지
+ │ ├ 북마크
+ │ └ 예약 관리
+ │
+ ├ 주최자 페이지
+ │ ├ 밴드 관리
+ │ ├ 공연 등록
+ │ └ 예약 관리
+ │
+ └ 관리자 페이지
+   ├ 사용자 관리
+   ├ 공연 관리
+   ├ 공연장 관리
+   └ 운영 관리
+Tech Stack
+Frontend
+
+Next.js
+
+TypeScript
+
+Tailwind CSS
+
+React Query
+
+Zod
+
+Component based architecture
+
+Backend
+
+Node.js / Next.js API Routes
+
+REST API architecture
+
+Role based access control
+
+Database
+
+PostgreSQL
+
 Prisma ORM
-->
-Supabase DB
 
+Infrastructure
 
-## Quick Start
-``bash
+Vercel (Frontend)
 
-git clone https://github.com/devbinlog/BandStage.git
+Cloud Database
 
-cd BandStage
+Image storage for posters and venue images
 
-npm install
+Database Structure
 
-npm run dev
+주요 데이터 모델
 
-Environment Variables
+User
 
-DATABASE_URL=
+Profile
 
-NEXTAUTH_SECRET=
+Region
 
-Project Structure
+Venue
 
-/app
+Band
 
-/api
+Performance
 
-/components
+Reservation
 
-/lib
+Genre
 
-/prisma
+Bookmark
+
+데이터 관계
+
+User
+ ├ Profile
+ ├ Reservations
+ └ Bookmarks
+
+Venue
+ └ Performances
+
+Band
+ └ Performances
+
+Performance
+ ├ Venue
+ ├ Bands
+ └ Reservations
+Key Design Decision
+공연장 중심 구조
+
+기존 공연 플랫폼은 공연 중심 구조입니다.
+
+Band Stage는 공연장을 중심으로 데이터를 구조화했습니다.
+
+Region
+  ↓
+Venue
+  ↓
+Performance
+  ↓
+Reservation
+
+이 구조를 통해 다음 경험을 제공합니다.
+
+지역 기반 공연 탐색
+
+공연장 기반 공연 탐색
+
+공연장 데이터 축적
+
+Example User Flow
+공연 탐색
+Home
+ → 지역 선택
+ → 공연 목록
+ → 공연 상세
+ → 예약
+공연장 탐색
+Home
+ → 공연장 목록
+ → 공연장 상세
+ → 예정 공연
+ → 공연 상세
+공연 등록
+Organizer Dashboard
+ → 공연 등록
+ → 공연장 선택
+ → 공연 정보 입력
+ → 공연 공개
+Future Improvements
+
+Band Stage는 다음 기능 확장을 고려하여 설계되었습니다.
+
+지도 기반 공연 탐색
+
+공연 추천 시스템
+
+공연 티켓 결제 시스템
+
+공연장 데이터 자동 수집
+
+공연 통계 분석
+
+공연 리뷰 시스템
 
 What I Focused On
 
-권한(Role) 분리를 통한 데이터 접근 안정성 확보
+이 프로젝트에서는 다음 부분을 중심으로 설계했습니다.
 
-환경 변수 누락 시 즉시 실패하도록 설계
+지역 기반 공연 탐색 구조
 
-실제 운영 가능한 서비스 구조 설계
+공연장 데이터 모델링
 
-## Future Work
-1. 포스터/티켓 제작 기능 추가
+공연 등록 및 관리 시스템
 
-2. 검색 성능 개선
+사용자 / 주최자 / 관리자 권한 구조
 
-3. 관리자 대시보드 고도화
-
+확장 가능한 데이터 구조 설계
