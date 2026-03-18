@@ -8,6 +8,8 @@ Band Stage는 인디 밴드 공연과 공연장을 지역 중심으로 탐색하
 
 Band Stage는 이러한 문제를 해결하기 위해 지역 기반 공연장 리스트업과 공연 탐색 시스템을 중심으로 설계된 플랫폼입니다.
 
+---
+
 Project Overview
 
 Band Stage는 다음 세 가지 핵심 기능을 중심으로 설계되었습니다.
@@ -22,6 +24,8 @@ Band Stage는 다음 세 가지 핵심 기능을 중심으로 설계되었습니
 밴드나 공연 주최자는 공연 정보를 직접 등록하고 관리할 수 있습니다.
 
 또한 공연장 정보를 구조화하여 지역 → 공연장 → 공연 → 예약 흐름으로 공연을 탐색할 수 있도록 설계했습니다.
+
+---
 
 Core Features
 1. 지역 기반 공연 탐색
@@ -39,6 +43,8 @@ Core Features
 인기 공연 / 최신 공연 정렬
 
 이 기능을 통해 특정 지역에서 열리는 공연을 빠르게 찾을 수 있습니다.
+
+---
 
 2. 공연장 데이터 구조화
 
@@ -74,6 +80,8 @@ Band Stage의 핵심 기능은 공연장 중심 탐색 구조입니다.
 
 이를 통해 사용자는 공연을 찾는 것뿐 아니라 공연장 자체를 탐색할 수 있습니다.
 
+---
+
 3. 공연 등록 시스템
 
 밴드 및 공연 주최자는 공연 정보를 직접 등록할 수 있습니다.
@@ -100,6 +108,8 @@ Band Stage의 핵심 기능은 공연장 중심 탐색 구조입니다.
 
 공연 등록 후 공연 페이지가 생성되며 사용자에게 공개됩니다.
 
+---
+
 4. 공연 상세 페이지
 
 공연 상세 페이지에서는 다음 정보를 제공합니다.
@@ -120,7 +130,9 @@ Band Stage의 핵심 기능은 공연장 중심 탐색 구조입니다.
 
 사용자는 해당 공연 페이지에서 예약 정보를 확인할 수 있습니다.
 
-5. 사용자 기능
+---
+
+- 5. 사용자 기능
 
 사용자는 다음 기능을 사용할 수 있습니다.
 
@@ -131,6 +143,8 @@ Band Stage의 핵심 기능은 공연장 중심 탐색 구조입니다.
 예약 내역 관리
 
 프로필 관리
+
+---
 
 6. 주최자 / 밴드 관리 기능
 
@@ -145,6 +159,8 @@ Band Stage의 핵심 기능은 공연장 중심 탐색 구조입니다.
 공연 예약 관리
 
 이를 통해 공연 운영자가 직접 공연 정보를 관리할 수 있습니다.
+
+---
 
 7. 관리자 기능
 
@@ -163,6 +179,8 @@ Band Stage의 핵심 기능은 공연장 중심 탐색 구조입니다.
 신고 및 운영 이슈 관리
 
 지역 및 장르 분류 관리
+
+---
 
 Information Architecture
 
@@ -200,6 +218,9 @@ Home
    ├ 공연 관리
    ├ 공연장 관리
    └ 운영 관리
+   
+---
+
 Tech Stack
 Frontend
 
@@ -215,6 +236,8 @@ Zod
 
 Component based architecture
 
+---
+
 Backend
 
 Node.js / Next.js API Routes
@@ -223,11 +246,15 @@ REST API architecture
 
 Role based access control
 
+---
+
 Database
 
 PostgreSQL
 
 Prisma ORM
+
+--- 
 
 Infrastructure
 
@@ -236,6 +263,8 @@ Vercel (Frontend)
 Cloud Database
 
 Image storage for posters and venue images
+
+---
 
 Database Structure
 
@@ -259,6 +288,8 @@ Genre
 
 Bookmark
 
+---
+
 데이터 관계
 
 User
@@ -277,6 +308,9 @@ Performance
  ├ Bands
  └ Reservations
 Key Design Decision
+
+--- 
+
 공연장 중심 구조
 
 기존 공연 플랫폼은 공연 중심 구조입니다.
@@ -291,6 +325,8 @@ Performance
   ↓
 Reservation
 
+--- 
+
 이 구조를 통해 다음 경험을 제공합니다.
 
 지역 기반 공연 탐색
@@ -298,6 +334,8 @@ Reservation
 공연장 기반 공연 탐색
 
 공연장 데이터 축적
+
+---
 
 Example User Flow
 공연 탐색
@@ -318,6 +356,9 @@ Organizer Dashboard
  → 공연장 선택
  → 공연 정보 입력
  → 공연 공개
+
+---
+ 
 Future Improvements
 
 Band Stage는 다음 기능 확장을 고려하여 설계되었습니다.
@@ -333,6 +374,8 @@ Band Stage는 다음 기능 확장을 고려하여 설계되었습니다.
 공연 통계 분석
 
 공연 리뷰 시스템
+
+---
 
 What I Focused On
 
