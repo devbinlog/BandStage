@@ -56,58 +56,70 @@ export async function getPerformances(params: PerformanceFilterParams = {}) {
 
   const skip = (page - 1) * limit;
 
-  const [items, total] = await Promise.all([
-    db.event.findMany({
-      where,
-      include: performanceInclude,
-      orderBy: { startsAt: "asc" },
-      skip,
-      take: limit,
-    }),
-    db.event.count({ where }),
-  ]);
+  try {
+    const [items, total] = await Promise.all([
+      db.event.findMany({
+        where,
+        include: performanceInclude,
+        orderBy: { startsAt: "asc" },
+        skip,
+        take: limit,
+      }),
+      db.event.count({ where }),
+    ]);
 
-  return {
-    items,
-    meta: getPaginationMeta(total, page, limit),
-  };
+    return {
+      items,
+      meta: getPaginationMeta(total, page, limit),
+    };
+  } catch {
+    return { items: [], meta: getPaginationMeta(0, page, limit) };
+  }
 }
 
 export async function getPerformanceBySlug(slug: string) {
-  return db.event.findUnique({
-    where: { slug },
-    include: {
-      genre: true,
-      venue: {
-        include: {
-          images: { orderBy: { sortOrder: "asc" }, take: 1 },
-          region: true,
+  try {
+    return await db.event.findUnique({
+      where: { slug },
+      include: {
+        genre: true,
+        venue: {
+          include: {
+            images: { orderBy: { sortOrder: "asc" }, take: 1 },
+            region: true,
+          },
         },
-      },
-      band: {
-        include: {
-          members: { orderBy: { sortOrder: "asc" } },
-          genre: true,
+        band: {
+          include: {
+            members: { orderBy: { sortOrder: "asc" } },
+            genre: true,
+          },
         },
+        owner: { select: { id: true, name: true, displayName: true } },
+        ticketTypes: { orderBy: { price: "asc" } },
+        images: { orderBy: { sortOrder: "asc" } },
+        region: true,
       },
-      owner: { select: { id: true, name: true, displayName: true } },
-      ticketTypes: { orderBy: { price: "asc" } },
-      images: { orderBy: { sortOrder: "asc" } },
-      region: true,
-    },
-  });
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function getUpcomingPerformances(limit = 6) {
-  return db.event.findMany({
-    where: {
-      status: "PUBLISHED",
-      startsAt: { gte: new Date() },
-    },
-    include: performanceInclude,
-    orderBy: { startsAt: "asc" },
-    take: limit,
-  });
+  try {
+    return await db.event.findMany({
+      where: {
+        status: "PUBLISHED",
+        startsAt: { gte: new Date() },
+      },
+      include: performanceInclude,
+      orderBy: { startsAt: "asc" },
+      take: limit,
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getPerformancesByOwner(ownerId: string, page = 1, limit = 10) {

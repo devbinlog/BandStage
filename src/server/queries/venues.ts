@@ -12,11 +12,15 @@ const venueListInclude = {
 } as const;
 
 export async function getVenues(params: VenueFilterParams = {}) {
-  const { regionId, venueType, capacityMin, capacityMax, q, page = 1, limit = 12 } = params;
+  const { regionId, venueType, genreId, capacityMin, capacityMax, q, page = 1, limit = 12 } = params;
 
   const where: Record<string, unknown> = {};
   if (regionId) where.regionId = regionId;
   if (venueType) where.venueType = venueType;
+  // 특정 장르의 공연이 열린 공연장만 필터
+  if (genreId) {
+    where.events = { some: { genreId, status: "PUBLISHED" } };
+  }
   if (capacityMin || capacityMax) {
     where.AND = [];
     if (capacityMin) (where.AND as unknown[]).push({ capacityMax: { gte: capacityMin } });
@@ -32,63 +36,79 @@ export async function getVenues(params: VenueFilterParams = {}) {
 
   const skip = (page - 1) * limit;
 
-  const [items, total] = await Promise.all([
-    db.venue.findMany({
-      where,
-      include: venueListInclude,
-      orderBy: { name: "asc" },
-      skip,
-      take: limit,
-    }),
-    db.venue.count({ where }),
-  ]);
+  try {
+    const [items, total] = await Promise.all([
+      db.venue.findMany({
+        where,
+        include: venueListInclude,
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      db.venue.count({ where }),
+    ]);
 
-  return { items, meta: getPaginationMeta(total, page, limit) };
+    return { items, meta: getPaginationMeta(total, page, limit) };
+  } catch {
+    return { items: [], meta: getPaginationMeta(0, page, limit) };
+  }
 }
 
 export async function getVenueBySlug(slug: string) {
-  return db.venue.findUnique({
-    where: { slug },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      region: true,
-      manager: { select: { id: true, name: true, email: true } },
-      events: {
-        where: {
-          status: "PUBLISHED",
-          startsAt: { gte: new Date() },
-        },
-        include: {
-          band: { select: { id: true, name: true, slug: true } },
-          ticketTypes: {
-            select: { price: true },
-            orderBy: { price: "asc" as const },
-            take: 1,
+  try {
+    return await db.venue.findUnique({
+      where: { slug },
+      include: {
+        images: { orderBy: { sortOrder: "asc" } },
+        region: true,
+        manager: { select: { id: true, name: true, email: true } },
+        events: {
+          where: {
+            status: "PUBLISHED",
+            startsAt: { gte: new Date() },
           },
+          include: {
+            band: { select: { id: true, name: true, slug: true } },
+            ticketTypes: {
+              select: { price: true },
+              orderBy: { price: "asc" as const },
+              take: 1,
+            },
+          },
+          orderBy: { startsAt: "asc" },
+          take: 5,
         },
-        orderBy: { startsAt: "asc" },
-        take: 5,
+        _count: { select: { events: true } },
       },
-      _count: { select: { events: true } },
-    },
-  });
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function getVenueById(id: string) {
-  return db.venue.findUnique({
-    where: { id },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      region: true,
-      manager: { select: { id: true, name: true } },
-    },
-  });
+  try {
+    return await db.venue.findUnique({
+      where: { id },
+      include: {
+        images: { orderBy: { sortOrder: "asc" } },
+        region: true,
+        manager: { select: { id: true, name: true } },
+      },
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function getVenuesByManager(managerId: string) {
-  return db.venue.findMany({
-    where: { managerId },
-    include: venueListInclude,
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    return await db.venue.findMany({
+      where: { managerId },
+      include: venueListInclude,
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
 }

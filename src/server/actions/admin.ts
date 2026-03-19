@@ -184,28 +184,25 @@ export async function createNotice(data: {
 export async function getAdminStats() {
   await requireAdmin();
 
-  const [
-    totalUsers,
-    totalEvents,
-    pendingEvents,
-    totalVenues,
-    totalTickets,
-    openReports,
-  ] = await Promise.all([
-    db.user.count(),
-    db.event.count(),
-    db.event.count({ where: { status: "PENDING" } }),
-    db.venue.count(),
-    db.ticket.count({ where: { status: { in: ["PENDING", "CONFIRMED"] } } }),
-    db.report.count({ where: { status: "OPEN" } }),
-  ]);
+  try {
+    const [
+      totalUsers,
+      totalEvents,
+      pendingEvents,
+      totalVenues,
+      totalTickets,
+      openReports,
+    ] = await Promise.all([
+      db.user.count(),
+      db.event.count(),
+      db.event.count({ where: { status: "PENDING" } }),
+      db.venue.count(),
+      db.ticket.count({ where: { status: { in: ["PENDING", "CONFIRMED"] } } }),
+      db.report.count({ where: { status: "OPEN" } }),
+    ]);
 
-  return {
-    totalUsers,
-    totalEvents,
-    pendingEvents,
-    totalVenues,
-    totalTickets,
-    openReports,
-  };
+    return { totalUsers, totalEvents, pendingEvents, totalVenues, totalTickets, openReports };
+  } catch {
+    return { totalUsers: 0, totalEvents: 0, pendingEvents: 0, totalVenues: 0, totalTickets: 0, openReports: 0 };
+  }
 }

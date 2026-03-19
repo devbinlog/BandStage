@@ -22,68 +22,80 @@ export async function getBands(params: {
 
   const skip = (page - 1) * limit;
 
-  const [items, total] = await Promise.all([
-    db.band.findMany({
-      where,
-      include: {
-        genre: { select: { id: true, name: true, color: true } },
-        region: { select: { id: true, name: true } },
-        members: {
-          select: { id: true, name: true, role: true },
-          orderBy: { sortOrder: "asc" },
-          take: 5,
+  try {
+    const [items, total] = await Promise.all([
+      db.band.findMany({
+        where,
+        include: {
+          genre: { select: { id: true, name: true, color: true } },
+          region: { select: { id: true, name: true } },
+          members: {
+            select: { id: true, name: true, role: true },
+            orderBy: { sortOrder: "asc" },
+            take: 5,
+          },
+          _count: { select: { events: true } },
         },
-        _count: { select: { events: true } },
-      },
-      orderBy: { name: "asc" },
-      skip,
-      take: limit,
-    }),
-    db.band.count({ where }),
-  ]);
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      db.band.count({ where }),
+    ]);
 
-  return { items, meta: getPaginationMeta(total, page, limit) };
+    return { items, meta: getPaginationMeta(total, page, limit) };
+  } catch {
+    return { items: [], meta: getPaginationMeta(0, page, limit) };
+  }
 }
 
 export async function getBandById(id: string) {
-  return db.band.findUnique({
-    where: { id },
-    include: {
-      genre: true,
-      region: true,
-      owner: { select: { id: true, name: true, displayName: true } },
-      members: {
-        include: { user: { select: { id: true, name: true, image: true } } },
-        orderBy: { sortOrder: "asc" },
-      },
-      events: {
-        where: {
-          status: "PUBLISHED",
-          startsAt: { gte: new Date() },
+  try {
+    return await db.band.findUnique({
+      where: { id },
+      include: {
+        genre: true,
+        region: true,
+        owner: { select: { id: true, name: true, displayName: true } },
+        members: {
+          include: { user: { select: { id: true, name: true, image: true } } },
+          orderBy: { sortOrder: "asc" },
         },
-        include: {
-          venue: { select: { id: true, name: true } },
-          ticketTypes: {
-            select: { price: true },
-            orderBy: { price: "asc" as const },
-            take: 1,
+        events: {
+          where: {
+            status: "PUBLISHED",
+            startsAt: { gte: new Date() },
           },
+          include: {
+            venue: { select: { id: true, name: true } },
+            ticketTypes: {
+              select: { price: true },
+              orderBy: { price: "asc" as const },
+              take: 1,
+            },
+          },
+          orderBy: { startsAt: "asc" },
+          take: 5,
         },
-        orderBy: { startsAt: "asc" },
-        take: 5,
+        _count: { select: { events: true, members: true } },
       },
-      _count: { select: { events: true, members: true } },
-    },
-  });
+    });
+  } catch {
+    return null;
+  }
 }
 
 export async function getBandsByOwner(ownerId: string) {
-  return db.band.findMany({
-    where: { ownerId },
-    include: {
-      genre: { select: { id: true, name: true } },
-      _count: { select: { members: true, events: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    return await db.band.findMany({
+      where: { ownerId },
+      include: {
+        genre: { select: { id: true, name: true } },
+        _count: { select: { members: true, events: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
 }

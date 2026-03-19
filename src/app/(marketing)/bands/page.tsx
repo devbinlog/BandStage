@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { getBands } from "@/server/queries/bands";
-import { db } from "@/lib/prisma";
+import { getGenres } from "@/server/queries/taxonomy";
 import { BandCard } from "@/components/shared/BandCard";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -32,7 +32,7 @@ export default async function BandsPage({ searchParams }: PageProps) {
       page,
       limit: 12,
     }),
-    db.genre.findMany({ orderBy: { sortOrder: "asc" } }),
+    getGenres(),
   ]);
 
   return (

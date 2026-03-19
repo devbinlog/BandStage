@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { createEvent } from "@/server/actions/events";
 
@@ -31,7 +32,9 @@ const labelClass = "block text-sm font-medium text-gray-700 mb-2";
 
 export default function NewPerformancePage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginRequired, setLoginRequired] = useState(false);
   const [venues, setVenues] = useState<VenueOption[]>([]);
   const [bands, setBands] = useState<BandOption[]>([]);
   const [ticketTypes, setTicketTypes] = useState<TicketTypeInput[]>([
@@ -76,6 +79,12 @@ export default function NewPerformancePage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!session) {
+      setLoginRequired(true);
+      return;
+    }
+
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
@@ -316,6 +325,19 @@ export default function NewPerformancePage() {
             />
           </div>
         </section>
+
+        {/* 로그인 필요 안내 */}
+        {loginRequired && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 flex items-center justify-between gap-4">
+            <p className="text-sm text-amber-800">공연을 등록하려면 로그인이 필요합니다.</p>
+            <Link
+              href={`/login?callbackUrl=/organizer/performances/new`}
+              className="shrink-0 rounded-lg bg-[#0d28c4] px-4 py-2 text-sm font-medium text-white hover:bg-[#0b1fb5] transition-colors"
+            >
+              로그인하기
+            </Link>
+          </div>
+        )}
 
         {/* 제출 */}
         <div className="flex flex-col sm:flex-row gap-3 justify-end">

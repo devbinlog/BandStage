@@ -13,6 +13,7 @@ export function Header() {
     { href: "/venues", label: "공연장" },
     { href: "/bands", label: "밴드" },
     { href: "/search", label: "검색" },
+    { href: "/organizer/performances/new", label: "공연 업로드" },
   ];
 
   return (
@@ -53,6 +54,14 @@ export function Header() {
                     className="rounded-lg border border-[#0d28c4] px-3 py-1.5 text-xs font-medium text-[#0d28c4] hover:bg-[#0d28c4] hover:text-white transition-colors"
                   >
                     오거나이저
+                  </Link>
+                )}
+                {(session.user?.role === "VENUE" || session.user?.role === "ADMIN") && (
+                  <Link
+                    href="/venue-manager"
+                    className="rounded-lg border border-emerald-400 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
+                  >
+                    공연장 관리
                   </Link>
                 )}
                 {session.user?.role === "ADMIN" && (
@@ -115,7 +124,7 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-3 border-t border-gray-100 space-y-2">
+            <div className="pt-2 border-t border-gray-100 space-y-2">
               {session ? (
                 <>
                   <Link href="/mypage" className="block text-sm font-medium text-[#0b1021]" onClick={() => setMobileOpen(false)}>

@@ -18,11 +18,9 @@ export default function MarketingLayout({ children }: MarketingLayoutProps) {
       <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_200px] xl:grid-cols-[250px_1fr_250px]">
         {/* Left Ad Sidebar */}
         <aside className="hidden lg:block">
-          <div className="sticky top-32 p-4">
+          <div className="invisible sticky top-32 p-4">
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="aspect-[200/400] flex items-center justify-center text-xs text-gray-400">
-                광고 영역
-              </div>
+              <div className="aspect-[200/400]" />
             </div>
           </div>
         </aside>
@@ -34,11 +32,9 @@ export default function MarketingLayout({ children }: MarketingLayoutProps) {
 
         {/* Right Ad Sidebar */}
         <aside className="hidden lg:block">
-          <div className="sticky top-32 p-4">
+          <div className="invisible sticky top-32 p-4">
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="aspect-[200/400] flex items-center justify-center text-xs text-gray-400">
-                광고 영역
-              </div>
+              <div className="aspect-[200/400]" />
             </div>
           </div>
         </aside>

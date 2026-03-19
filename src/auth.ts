@@ -40,6 +40,13 @@ const credentialsSchema = z.object({
   password: z.string().min(8),
 });
 
+// 개발/데모용 테스트 계정 (DB 없이도 로그인 가능)
+const DEV_ACCOUNTS = [
+  { email: "admin@bandstage.dev", password: "admin1234!", role: "ADMIN" as const, name: "관리자", id: "dev-admin" },
+  { email: "artist@bandstage.dev", password: "artist1234!", role: "ARTIST" as const, name: "테스트 아티스트", id: "dev-artist" },
+  { email: "venue@bandstage.dev", password: "venue1234!", role: "VENUE" as const, name: "테스트 공연장", id: "dev-venue" },
+];
+
 export async function getAuthOptions() {
   try {
     const adapterInstance = await getAdapter();
@@ -60,9 +67,17 @@ export async function getAuthOptions() {
               return null;
             }
 
+            // 개발/데모 계정 우선 확인 (DB 불필요)
+            const devAccount = DEV_ACCOUNTS.find(
+              (a) => a.email === parsed.data.email && a.password === parsed.data.password
+            );
+            if (devAccount) {
+              return { id: devAccount.id, email: devAccount.email, name: devAccount.name, role: devAccount.role };
+            }
+
             const database = await getDb();
             if (!database) {
-              return null; // 데이터베이스 없으면 로그인 불가
+              return null;
             }
 
             try {

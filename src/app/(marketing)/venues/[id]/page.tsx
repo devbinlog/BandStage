@@ -10,47 +10,28 @@ interface PageProps {
 
 // slug 또는 id로 공연장 조회
 async function findVenue(idOrSlug: string) {
-  // slug로 먼저 조회
-  let venue = await db.venue.findUnique({
-    where: { slug: idOrSlug },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      region: true,
-      manager: { select: { id: true, name: true } },
-      events: {
-        where: { status: "PUBLISHED", startsAt: { gte: new Date() } },
-        include: {
-          band: { select: { id: true, name: true } },
-          ticketTypes: { select: { price: true }, orderBy: { price: "asc" }, take: 1 },
-        },
-        orderBy: { startsAt: "asc" },
-        take: 5,
-      },
-      _count: { select: { events: true } },
-    },
-  });
-  // slug로 없으면 id로 조회
-  if (!venue) {
-    venue = await db.venue.findUnique({
-      where: { id: idOrSlug },
+  const include = {
+    images: { orderBy: { sortOrder: "asc" as const } },
+    region: true,
+    manager: { select: { id: true, name: true } },
+    events: {
+      where: { status: "PUBLISHED" as const, startsAt: { gte: new Date() } },
       include: {
-        images: { orderBy: { sortOrder: "asc" } },
-        region: true,
-        manager: { select: { id: true, name: true } },
-        events: {
-          where: { status: "PUBLISHED", startsAt: { gte: new Date() } },
-          include: {
-            band: { select: { id: true, name: true } },
-            ticketTypes: { select: { price: true }, orderBy: { price: "asc" }, take: 1 },
-          },
-          orderBy: { startsAt: "asc" },
-          take: 5,
-        },
-        _count: { select: { events: true } },
+        band: { select: { id: true, name: true } },
+        ticketTypes: { select: { price: true }, orderBy: { price: "asc" as const }, take: 1 },
       },
-    });
+      orderBy: { startsAt: "asc" as const },
+      take: 5,
+    },
+    _count: { select: { events: true } },
+  };
+  try {
+    const bySlug = await db.venue.findUnique({ where: { slug: idOrSlug }, include });
+    if (bySlug) return bySlug;
+    return await db.venue.findUnique({ where: { id: idOrSlug }, include });
+  } catch {
+    return null;
   }
-  return venue;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

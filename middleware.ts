@@ -50,6 +50,11 @@ export async function middleware(request: NextRequest) {
 
   // 보호된 경로: 로그인 필요
   if (PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))) {
+    // 공연 등록 페이지는 누구나 접근 가능 (제출 시 로그인 체크)
+    if (pathname === "/organizer/performances/new") {
+      return NextResponse.next();
+    }
+
     if (!isAuthenticated) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("callbackUrl", pathname);

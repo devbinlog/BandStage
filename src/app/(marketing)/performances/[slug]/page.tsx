@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPerformanceBySlug } from "@/server/queries/performances";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateTime, formatPrice } from "@/lib/utils";
+import { auth } from "@/auth";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -21,7 +22,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PerformanceDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const event = await getPerformanceBySlug(slug);
+  const [event, session] = await Promise.all([
+    getPerformanceBySlug(slug),
+    auth(),
+  ]);
 
   if (!event) notFound();
 
@@ -155,10 +159,14 @@ export default async function PerformanceDetailPage({ params }: PageProps) {
                   </p>
                   {tt.remaining > 0 ? (
                     <Link
-                      href={`/events/${event.slug}/checkout`}
+                      href={
+                        session
+                          ? `/events/${event.slug}/checkout`
+                          : `/login?callbackUrl=/performances/${event.slug}`
+                      }
                       className="mt-2 inline-flex rounded-lg bg-[#0d28c4] px-4 py-2 text-xs font-medium text-white hover:bg-[#0b1fb5] transition-colors"
                     >
-                      예매하기
+                      {session ? "예매하기" : "로그인 후 예매"}
                     </Link>
                   ) : (
                     <span className="mt-2 inline-flex rounded-lg bg-gray-100 px-4 py-2 text-xs text-gray-400">

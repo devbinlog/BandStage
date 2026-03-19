@@ -97,6 +97,7 @@ export interface PerformanceFilterParams {
 export interface VenueFilterParams {
   regionId?: string;
   venueType?: VenueType;
+  genreId?: string;
   capacityMin?: number;
   capacityMax?: number;
   q?: string;
