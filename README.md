@@ -80,7 +80,7 @@ BandStage는 공연의 전체 라이프사이클을 하나의 플랫폼으로 �
 
 ---
 
-## Page Images( 사진 데이터 현재 진행 중 )
+## Page Images
 - MainPage 
 <img width="1288" height="719" alt="밴드스테이지메인1" src="https://github.com/user-attachments/assets/b9ad1379-5d54-4d26-8c1b-68cbc8003ee7" />
 <img width="1288" height="719" alt="밴드스테이지메인2" src="https://github.com/user-attachments/assets/7cc1d73a-23d4-4458-b0d1-9bfff8da488a" />
@@ -93,7 +93,7 @@ BandStage는 공연의 전체 라이프사이클을 하나의 플랫폼으로 �
 <img width="1288" height="719" alt="밴드스테이지공연검색3" src="https://github.com/user-attachments/assets/3b2c19db-aac1-4032-839a-9be2a02908d9" />
 
 
-- Venues Page
+- Venues Page( 사진 데이터 현재 진행 중 )
 <img width="1288" height="719" alt="밴드스테이지공연장1" src="https://github.com/user-attachments/assets/bbd9abb7-2064-4a0f-bd22-96d6b2c2aa6c" />
 <img width="1288" height="719" alt="밴드스테이지공연장2" src="https://github.com/user-attachments/assets/94044721-be44-4f67-afd6-ebd987236aeb" />
 <img width="1288" height="719" alt="밴드스테이지공연장3" src="https://github.com/user-attachments/assets/35a28619-928b-4d20-ad13-827f5104c68b" />
