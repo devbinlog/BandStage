@@ -3,6 +3,7 @@
  * 실행: npx tsx prisma/seed.ts
  */
 
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 async function hashPassword(password: string): Promise<string> {
