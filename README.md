@@ -273,23 +273,5 @@ npx tsx prisma/seed.ts # 시드 데이터 삽입
 npm run dev
 ```
 
-### 테스트 계정
-
-| 역할 | 이메일 | 비밀번호 |
-|------|--------|----------|
-| ADMIN | admin@bandstage.kr | admin1234! |
-| ARTIST | artist@bandstage.kr | artist1234! |
-| VENUE | venue@bandstage.kr | venue1234! |
-| FAN | fan@bandstage.kr | fan12345! |
-
 ---
 
-## Author
-
-김태빈 — 기획 · 설계 · 프론트엔드 · 백엔드 전체 개발
-
----
-
-## License
-
-MIT License
