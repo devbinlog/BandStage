@@ -25,7 +25,7 @@
 BandStage는 공연의 전체 라이프사이클을 하나의 플랫폼으로 통합한다.
 
 ```
-지역(Region) → 공연장(Venue) → 공연(Event) → 예매(Reservation)
+검색(Search) Or 지역 필터(Region) → 공연장(Venue) → 공연(Event) → 예매(Reservation)
 ```
 
 지역 단위로 공연장을 구조화하고, 각 공연장에 공연을 연결한다.
