@@ -1,10 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-//
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-//
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -14,6 +7,8 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
 
 enum Role {
   FAN
@@ -70,6 +65,145 @@ enum BandMemberRole {
   OTHER
 }
 
+enum BookmarkTargetType {
+  EVENT
+  VENUE
+  BAND
+}
+
+enum VenueType {
+  LIVE_CLUB
+  CONCERT_HALL
+  OUTDOOR
+  MULTIPLEX
+  BAR
+  OTHER
+}
+
+enum NoticeType {
+  GENERAL
+  MAINTENANCE
+  UPDATE
+  EVENT
+}
+
+// ─── 지역 계층 ────────────────────────────────────────────────────────────────
+
+model Region {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String   @unique
+  parentId   String?
+  level      Int      @default(0) // 0=country, 1=province, 2=city, 3=district
+  sortOrder  Int      @default(0)
+  parent     Region?  @relation("RegionTree", fields: [parentId], references: [id])
+  children   Region[] @relation("RegionTree")
+  venues     Venue[]
+  events     Event[]
+  bands      Band[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+// ─── 장르 ─────────────────────────────────────────────────────────────────────
+
+model Genre {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  color     String?  // hex 색상 코드
+  sortOrder Int      @default(0)
+  events    Event[]
+  bands     Band[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── 공지사항 ─────────────────────────────────────────────────────────────────
+
+model Notice {
+  id          String     @id @default(cuid())
+  title       String
+  content     String     @db.Text
+  type        NoticeType @default(GENERAL)
+  isPinned    Boolean    @default(false)
+  isPublished Boolean    @default(false)
+  authorId    String?
+  author      User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([isPublished])
+}
+
+// ─── 감사 로그 ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String   // CREATE, UPDATE, DELETE, APPROVE, REJECT 등
+  targetType String   // 대상 모델 이름
+  targetId   String   // 대상 레코드 ID
+  actorId    String?  // 수행한 사용자 ID
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  before     Json?    // 변경 전 데이터
+  after      Json?    // 변경 후 데이터
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([actorId])
+}
+
+// ─── 북마크 ───────────────────────────────────────────────────────────────────
+
+model Bookmark {
+  id         String             @id @default(cuid())
+  userId     String
+  targetType BookmarkTargetType
+  targetId   String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime           @default(now())
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId])
+  @@index([targetType, targetId])
+}
+
+// ─── 공연 이미지 ──────────────────────────────────────────────────────────────
+
+model PerformanceImage {
+  id        String   @id @default(cuid())
+  eventId   String
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+}
+
+// ─── 공연장 이미지 ────────────────────────────────────────────────────────────
+
+model VenueImage {
+  id        String   @id @default(cuid())
+  venueId   String
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([venueId])
+}
+
+// ─── 사용자 ───────────────────────────────────────────────────────────────────
+
 model User {
   id                String             @id @default(cuid())
   email             String?            @unique
@@ -96,6 +230,9 @@ model User {
   venueSuggestions  VenueSuggestion[]
   reportsFiled      Report[]           @relation("ReportAuthor")
   reportsReviewed   Report[]           @relation("ReportReviewer")
+  bookmarks         Bookmark[]
+  notices           Notice[]
+  auditLogs         AuditLog[]
 }
 
 model Account {
@@ -128,27 +265,43 @@ model Session {
 
 model VerificationToken {
   identifier String
-  token      String @unique
+  token      String   @unique
   expires    DateTime
 
   @@unique([identifier, token])
 }
 
+// ─── 밴드 ─────────────────────────────────────────────────────────────────────
+
 model Band {
   id             String           @id @default(cuid())
   name           String
   slug           String           @unique
-  genre          String?
-  region         String?
   description    String?
   coverImage     String?
+  profileImage   String?
+  formedYear     Int?
+  disbandedYear  Int?
+  instagram      String?
+  youtube        String?
+  soundcloud     String?
+  website        String?
+  isActive       Boolean          @default(true)
   ownerId        String?
+  genreId        String?
+  regionId       String?
   owner          User?            @relation("BandOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  genre          Genre?           @relation(fields: [genreId], references: [id], onDelete: SetNull)
+  region         Region?          @relation(fields: [regionId], references: [id], onDelete: SetNull)
   members        BandMember[]
   events         Event[]
   communityPosts CommunityPost[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+
+  @@index([genreId])
+  @@index([regionId])
+  @@index([ownerId])
 }
 
 model BandMember {
@@ -168,10 +321,12 @@ model BandMember {
   @@index([userId])
 }
 
+// ─── 공연장 ───────────────────────────────────────────────────────────────────
+
 model Venue {
-  id            String   @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String
-  slug          String   @unique
+  slug          String       @unique
   description   String?
   addressLine1  String?
   addressLine2  String?
@@ -182,54 +337,75 @@ model Venue {
   email         String?
   website       String?
   naverMapUrl   String?
+  lat           Float?       // 위도
+  lng           Float?       // 경도
   capacityMin   Int?
   capacityMax   Int?
+  venueType     VenueType    @default(OTHER)
+  isIndoor      Boolean      @default(true)
   tags          String[]
   amenities     String[]
   bookingPolicy String?
   notes         String?
+  isVerified    Boolean      @default(false)
   managerId     String?
-  manager       User?    @relation("VenueManager", fields: [managerId], references: [id], onDelete: SetNull)
+  regionId      String?
+  manager       User?        @relation("VenueManager", fields: [managerId], references: [id], onDelete: SetNull)
+  region        Region?      @relation(fields: [regionId], references: [id], onDelete: SetNull)
   events        Event[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  images        VenueImage[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([managerId])
+  @@index([regionId])
+  @@index([venueType])
 }
 
+// ─── 공연 (Event) ─────────────────────────────────────────────────────────────
+
 model Event {
-  id          String      @id @default(cuid())
-  title       String
-  slug        String      @unique
-  summary     String?
-  description String?
-  coverImage  String?
-  status      EventStatus @default(DRAFT)
-  startsAt    DateTime
-  endsAt      DateTime?
-  timezone    String      @default("Asia/Seoul")
-  publishedAt DateTime?
-  venueId     String?
-  bandId      String?
-  ownerId     String?
-  genre       String?
-  ageLimit    String?
-  ticketNote  String?
-  externalUrl String?
-  venue       Venue?      @relation(fields: [venueId], references: [id], onDelete: SetNull)
-  band        Band?       @relation(fields: [bandId], references: [id], onDelete: SetNull)
-  owner       User?       @relation("EventOwner", fields: [ownerId], references: [id], onDelete: SetNull)
-  ticketTypes TicketType[]
-  tickets     Ticket[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String             @id @default(cuid())
+  title         String
+  slug          String             @unique
+  summary       String?
+  description   String?            @db.Text
+  coverImage    String?
+  status        EventStatus        @default(DRAFT)
+  startsAt      DateTime
+  endsAt        DateTime?
+  timezone      String             @default("Asia/Seoul")
+  publishedAt   DateTime?
+  ageLimit      String?
+  ticketNote    String?
+  externalUrl   String?
+  viewCount     Int                @default(0)
+  venueId       String?
+  bandId        String?
+  ownerId       String?
+  genreId       String?
+  regionId      String?
+  venue         Venue?             @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  band          Band?              @relation(fields: [bandId], references: [id], onDelete: SetNull)
+  owner         User?              @relation("EventOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  genre         Genre?             @relation(fields: [genreId], references: [id], onDelete: SetNull)
+  region        Region?            @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  ticketTypes   TicketType[]
+  tickets       Ticket[]
+  images        PerformanceImage[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@index([venueId])
   @@index([bandId])
   @@index([ownerId])
+  @@index([genreId])
+  @@index([regionId])
   @@index([status])
   @@index([startsAt])
 }
+
+// ─── 티켓 ─────────────────────────────────────────────────────────────────────
 
 model TicketType {
   id           String             @id @default(cuid())
@@ -261,6 +437,7 @@ model Ticket {
   quantity     Int          @default(1)
   totalAmount  Decimal?     @db.Decimal(10, 2)
   paymentRef   String?
+  qrCode       String?      @unique
   metadata     Json?
   ticketType   TicketType   @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
   event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -271,7 +448,10 @@ model Ticket {
   @@index([ticketTypeId])
   @@index([eventId])
   @@index([userId])
+  @@index([status])
 }
+
+// ─── 기타 ─────────────────────────────────────────────────────────────────────
 
 model VenueSuggestion {
   id            String           @id @default(cuid())
@@ -291,31 +471,31 @@ model VenueSuggestion {
 }
 
 model CommunityPost {
-  id        String   @id @default(cuid())
+  id        String             @id @default(cuid())
   bandId    String
   authorId  String
   title     String
-  content   String   @db.Text
-  isPinned  Boolean  @default(false)
+  content   String             @db.Text
+  isPinned  Boolean            @default(false)
   comments  CommunityComment[]
-  band      Band     @relation(fields: [bandId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  band      Band               @relation(fields: [bandId], references: [id], onDelete: Cascade)
+  author    User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 
   @@index([bandId])
   @@index([authorId])
 }
 
 model CommunityComment {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   postId    String
   authorId  String
-  content   String   @db.Text
+  content   String        @db.Text
   post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([postId])
   @@index([authorId])

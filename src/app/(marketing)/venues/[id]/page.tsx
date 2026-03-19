@@ -1,142 +1,271 @@
+import { notFound } from "next/navigation";
 import Link from "next/link";
+import { db } from "@/lib/prisma";
+import { formatPrice, formatCapacity, formatDate } from "@/lib/utils";
+import type { Metadata } from "next";
 
-const mockVenue = {
-  id: "1",
-  name: "롤링홀",
-  tags: ["홍대", "밴드", "라이브클럽"],
-  address: "서울 마포구 어울마당로 35",
-  phone: "02-123-4567",
-  homepage: "https://rollinghall.co.kr",
-  capacity: "150-250명",
-  vibe: ["밴드", "록", "인디"],
-  equipment: ["드럼 풀세트", "기타/베이스 앰프", "모니터 4채널", "PA 시스템"],
-  booking: "대관료 + 매표 정산 (기본 80:20)",
-  schedule: "월-목 오후, 금-일 저녁",
-  notes: "사운드체크 필수, 95dB 이상 시 경고",
-  mapUrl: "https://map.naver.com",
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+// slug 또는 id로 공연장 조회
+async function findVenue(idOrSlug: string) {
+  // slug로 먼저 조회
+  let venue = await db.venue.findUnique({
+    where: { slug: idOrSlug },
+    include: {
+      images: { orderBy: { sortOrder: "asc" } },
+      region: true,
+      manager: { select: { id: true, name: true } },
+      events: {
+        where: { status: "PUBLISHED", startsAt: { gte: new Date() } },
+        include: {
+          band: { select: { id: true, name: true } },
+          ticketTypes: { select: { price: true }, orderBy: { price: "asc" }, take: 1 },
+        },
+        orderBy: { startsAt: "asc" },
+        take: 5,
+      },
+      _count: { select: { events: true } },
+    },
+  });
+  // slug로 없으면 id로 조회
+  if (!venue) {
+    venue = await db.venue.findUnique({
+      where: { id: idOrSlug },
+      include: {
+        images: { orderBy: { sortOrder: "asc" } },
+        region: true,
+        manager: { select: { id: true, name: true } },
+        events: {
+          where: { status: "PUBLISHED", startsAt: { gte: new Date() } },
+          include: {
+            band: { select: { id: true, name: true } },
+            ticketTypes: { select: { price: true }, orderBy: { price: "asc" }, take: 1 },
+          },
+          orderBy: { startsAt: "asc" },
+          take: 5,
+        },
+        _count: { select: { events: true } },
+      },
+    });
+  }
+  return venue;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const venue = await findVenue(id);
+  if (!venue) return { title: "공연장을 찾을 수 없습니다." };
+  return {
+    title: `${venue.name} | Band-Stage`,
+    description: venue.description ?? `${venue.name} 공연장 정보`,
+  };
+}
+
+const VENUE_TYPE_LABEL: Record<string, string> = {
+  LIVE_CLUB: "라이브클럽",
+  CONCERT_HALL: "공연홀",
+  OUTDOOR: "야외",
+  MULTIPLEX: "복합공간",
+  BAR: "바/카페",
+  OTHER: "기타",
 };
 
-export default function VenueDetailPage() {
+export default async function VenueDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const venue = await findVenue(id);
+
+  if (!venue) notFound();
+
   return (
-    <div className="space-y-8">
-      {/* Venue Title */}
-      <header className="space-y-4">
-        <h1 className="text-4xl font-bold text-white">{mockVenue.name}</h1>
-        {/* 지역 태그 */}
-        <div className="flex flex-wrap gap-2">
-          {mockVenue.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-cyan-500/50 bg-cyan-500/20 px-3 py-1 text-sm font-medium text-cyan-400"
-            >
-              {tag}
+    <div className="space-y-6 pb-16">
+      {/* 헤더 */}
+      <header className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#0d28c4]/30 bg-[#0d28c4]/10 px-3 py-1 text-xs text-[#0d28c4]">
+            {VENUE_TYPE_LABEL[venue.venueType] ?? "기타"}
+          </span>
+          {venue.isVerified && (
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
+              ✓ 인증된 공연장
             </span>
-          ))}
+          )}
         </div>
+        <h1 className="text-3xl font-bold text-[#0b1021]">{venue.name}</h1>
+        {venue.region && <p className="text-sm text-gray-500">📍 {venue.region.name}</p>}
       </header>
 
-      {/* Map Placeholder Box */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
-        <div className="aspect-video rounded-lg bg-gray-800 flex items-center justify-center mb-4">
-          <span className="text-gray-500">지도 영역</span>
+      {/* 이미지 */}
+      {venue.images.length > 0 ? (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {venue.images.slice(0, 4).map((img, idx) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={idx}
+              src={img.url}
+              alt={img.caption ?? venue.name}
+              className={`w-full rounded-xl object-cover shadow-sm ${
+                idx === 0 ? "aspect-video sm:col-span-2" : "aspect-square"
+              }`}
+            />
+          ))}
         </div>
-        <a
-          href={mockVenue.mapUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/50 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-400 transition-all hover:bg-cyan-500/30 hover:shadow-[0_0_10px_rgba(34,211,238,0.5)]"
-        >
-          🗺 네이버 지도 링크
-        </a>
-      </div>
+      ) : (
+        <div className="aspect-video rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+          <span className="text-6xl opacity-20">🏟</span>
+        </div>
+      )}
 
-      {/* Details Section */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 space-y-6">
-        <h2 className="text-2xl font-bold text-white">공연장 정보</h2>
-        
-        <dl className="grid gap-4 text-sm md:grid-cols-2">
+      {/* 기본 정보 */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="font-semibold text-[#0b1021] mb-4">기본 정보</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {venue.addressLine1 && (
+            <div>
+              <p className="text-xs text-gray-400 mb-1">주소</p>
+              <p className="text-sm text-[#0b1021]">{venue.addressLine1}</p>
+            </div>
+          )}
           <div>
-            <dt className="text-gray-400 mb-1">주소</dt>
-            <dd className="text-white">{mockVenue.address}</dd>
+            <p className="text-xs text-gray-400 mb-1">수용 인원</p>
+            <p className="text-sm text-[#0b1021]">
+              {formatCapacity(venue.capacityMin, venue.capacityMax)}
+            </p>
           </div>
-          <div>
-            <dt className="text-gray-400 mb-1">연락처</dt>
-            <dd className="text-white">{mockVenue.phone}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-400 mb-1">홈페이지</dt>
-            <dd>
-              <a
-                href={mockVenue.homepage}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                {mockVenue.homepage}
+          {venue.phone && (
+            <div>
+              <p className="text-xs text-gray-400 mb-1">전화번호</p>
+              <a href={`tel:${venue.phone}`} className="text-sm text-[#0d28c4] hover:underline">
+                {venue.phone}
               </a>
-            </dd>
-          </div>
+            </div>
+          )}
+          {venue.email && (
+            <div>
+              <p className="text-xs text-gray-400 mb-1">이메일</p>
+              <a href={`mailto:${venue.email}`} className="text-sm text-[#0d28c4] hover:underline">
+                {venue.email}
+              </a>
+            </div>
+          )}
           <div>
-            <dt className="text-gray-400 mb-1">수용 인원</dt>
-            <dd className="text-white">{mockVenue.capacity}</dd>
+            <p className="text-xs text-gray-400 mb-1">실내/야외</p>
+            <p className="text-sm text-[#0b1021]">{venue.isIndoor ? "실내" : "야외"}</p>
           </div>
-        </dl>
-
-        {/* 분위기(태그) */}
-        <div>
-          <dt className="text-gray-400 mb-2">분위기</dt>
-          <div className="flex flex-wrap gap-2">
-            {mockVenue.vibe.map((v) => (
-              <span
-                key={v}
-                className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-400"
-              >
-                #{v}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* 장비 리스트 */}
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-3">장비 리스트</h3>
-          <ul className="space-y-2">
-            {mockVenue.equipment.map((item) => (
-              <li key={item} className="flex items-center gap-2 text-gray-300">
-                <span className="text-cyan-400">✓</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* 대관 정보 */}
-        <div className="pt-4 border-t border-gray-800">
-          <div className="grid gap-4 md:grid-cols-2">
+          {venue._count && (
             <div>
-              <h3 className="text-sm font-semibold text-white mb-2">대관 방식</h3>
-              <p className="text-sm text-gray-300">{mockVenue.booking}</p>
+              <p className="text-xs text-gray-400 mb-1">총 공연 수</p>
+              <p className="text-sm text-[#0b1021]">{venue._count.events}회</p>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-white mb-2">대관 가능 시간</h3>
-              <p className="text-sm text-gray-300">{mockVenue.schedule}</p>
-            </div>
-          </div>
+          )}
         </div>
-
-        {/* 주의사항 */}
-        <div className="pt-4 border-t border-gray-800">
-          <h3 className="text-sm font-semibold text-white mb-2">주의사항 / 팁</h3>
-          <p className="text-sm text-gray-300">{mockVenue.notes}</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {venue.naverMapUrl && (
+            <a
+              href={venue.naverMapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs text-green-700 hover:bg-green-100 transition-colors"
+            >
+              네이버 지도
+            </a>
+          )}
+          {venue.website && (
+            <a
+              href={venue.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              공식 사이트
+            </a>
+          )}
         </div>
       </div>
 
-      {/* 안내 문구 */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 text-sm text-gray-400">
-        <p>
-          Band-Stage는 정보 안내만 제공하며, 대관은 공연장에 직접 문의해주세요.
-          정보가 틀리면 <Link href="/venues/report" className="text-cyan-400 hover:text-cyan-300">여기</Link>에서 제보할 수 있습니다.
-        </p>
+      {/* 소개 */}
+      {venue.description && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="font-semibold text-[#0b1021] mb-3">공연장 소개</h2>
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {venue.description}
+          </p>
+        </div>
+      )}
+
+      {/* 태그 / 편의시설 */}
+      {(venue.tags.length > 0 || venue.amenities.length > 0) && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
+          {venue.tags.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-[#0b1021] mb-2">태그</p>
+              <div className="flex flex-wrap gap-2">
+                {venue.tags.map((tag) => (
+                  <span key={tag} className="rounded-full border border-[#0d28c4]/20 bg-[#0d28c4]/5 px-2 py-1 text-xs text-[#0d28c4]">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {venue.amenities.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-[#0b1021] mb-2">편의시설</p>
+              <div className="flex flex-wrap gap-2">
+                {venue.amenities.map((a) => (
+                  <span key={a} className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+                    ✓ {a}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 대관 정책 */}
+      {venue.bookingPolicy && (
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="font-semibold text-[#0b1021] mb-3">대관 정책</h2>
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {venue.bookingPolicy}
+          </p>
+        </div>
+      )}
+
+      {/* 예정 공연 */}
+      {venue.events.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold text-[#0b1021]">예정 공연</h2>
+          <div className="space-y-3">
+            {venue.events.map((event) => {
+              const minPrice = event.ticketTypes[0]?.price ? Number(event.ticketTypes[0].price) : null;
+              return (
+                <Link
+                  key={event.id}
+                  href={`/performances/${event.slug}`}
+                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 hover:border-[#0d28c4]/40 transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-[#0b1021]">{event.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {formatDate(event.startsAt)} · {event.band?.name}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold text-[#0d28c4]">
+                    {formatPrice(minPrice)}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-xs text-gray-400">
+        Band-Stage는 정보 안내만 제공하며, 대관은 공연장에 직접 문의해주세요.
+        정보가 틀리면 <Link href="/venues/report" className="text-[#0d28c4] hover:underline">여기</Link>에서 제보할 수 있습니다.
       </div>
     </div>
   );
