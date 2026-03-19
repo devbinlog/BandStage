@@ -80,7 +80,7 @@ BandStage는 공연의 전체 라이프사이클을 하나의 플랫폼으로 �
 
 ---
 
-## Page Images
+## Page Images( 사진 데이터 현재 진행 중 )
 - MainPage 
 <img width="1288" height="719" alt="밴드스테이지메인1" src="https://github.com/user-attachments/assets/b9ad1379-5d54-4d26-8c1b-68cbc8003ee7" />
 <img width="1288" height="719" alt="밴드스테이지메인2" src="https://github.com/user-attachments/assets/7cc1d73a-23d4-4458-b0d1-9bfff8da488a" />
