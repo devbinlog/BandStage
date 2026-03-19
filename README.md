@@ -28,7 +28,7 @@ BandStage는 공연의 전체 라이프사이클을 하나의 플랫폼으로 �
 ```
 
 지역 단위로 공연장을 구조화하고, 각 공연장에 공연을 연결한다.
-밴드와 주최자가 직접 등록·관리하며, 관리자 승인을 거쳐 공개된다.
+밴드와 주최자가 직접 등록&관리하며, 관리자 승인을 거쳐 공개된다.
 
 ---
 
@@ -38,7 +38,7 @@ BandStage는 공연의 전체 라이프사이클을 하나의 플랫폼으로 �
 
 - 서울 구 단위 필터링 (마포구, 강남구, 용산구, 성동구, 종로구 등)
 - 장르 필터 (인디 록, 재즈, 메탈, 포크, 블루스, 펑크, 일렉트로닉)
-- 날짜·상태별 정렬, 필터 조합 후 공유 가능한 URL 구조
+- 날짜 & 상태별 정렬, 필터 조합 후 공유 가능한 URL 구조
 
 ### 2. 공연장 데이터 구조화
 
@@ -57,27 +57,61 @@ BandStage는 공연의 전체 라이프사이클을 하나의 플랫폼으로 �
 
 - 티켓 타입별 가격·잔여 수량 표시
 - 예매 기능 (로그인 필요, callbackUrl 자동 처리)
-- 공연장·밴드 연결 정보 표시
+- 공연장 & 밴드 연결 정보 표시
 
 ### 5. 사용자 기능
 
 - 마이페이지 — 예매 내역, 북마크, 프로필 수정
-- 공연·공연장·밴드 북마크
+- 공연, 공연장, 밴드 북마크
 - 이메일 로그인 (NextAuth.js Credentials Provider, JWT session)
 
 ### 6. 주최자(Organizer) 기능
 
-- 밴드 및 공연 직접 등록·수정·삭제
+- 밴드 및 공연 직접 등록, 수정, 삭제
 - 등록 공연의 상태 추적 및 예매자 목록 확인
+- 공연 포스터 및 티켓 디자인 후 배포
 
 ### 7. 관리자(Admin) 기능
 
 - 공연 승인 / 반려 / 게시
 - 공연장 인증, 사용자 역할 변경
 - 신고 처리, 공지사항 작성
-- 대시보드 통계 (전체 유저·공연·미승인·오픈 신고 수)
+- 대시보드 통계 (전체 유저, 공연, 미승인, 오픈 신고 수)
 
 ---
+
+## Page Images
+- MainPage 
+<img width="1288" height="719" alt="밴드스테이지메인1" src="https://github.com/user-attachments/assets/b9ad1379-5d54-4d26-8c1b-68cbc8003ee7" />
+<img width="1288" height="719" alt="밴드스테이지메인2" src="https://github.com/user-attachments/assets/5b376d4a-42f0-4913-95e6-805d4eff1e5c" />
+<img width="1288" height="719" alt="밴드스테이지메인3" src="https://github.com/user-attachments/assets/02b099b6-5817-422a-9896-15ae2d5ce10e" />
+
+
+- Performances Page
+<img width="1288" height="719" alt="밴드스테이지공연검색1" src="https://github.com/user-attachments/assets/2bf45ac6-9363-4ec3-8a38-c081f6f2dfb7" />
+<img width="1288" height="719" alt="밴드스테이지공연검색2" src="https://github.com/user-attachments/assets/5c15781c-60eb-4746-9a0b-bfc93250de54" />
+<img width="1288" height="719" alt="밴드스테이지공연검색3" src="https://github.com/user-attachments/assets/3b2c19db-aac1-4032-839a-9be2a02908d9" />
+
+
+
+- Venues Page
+<img width="1288" height="719" alt="밴드스테이지공연장1" src="https://github.com/user-attachments/assets/bbd9abb7-2064-4a0f-bd22-96d6b2c2aa6c" />
+<img width="1288" height="719" alt="밴드스테이지공연장2" src="https://github.com/user-attachments/assets/94044721-be44-4f67-afd6-ebd987236aeb" />
+<img width="1288" height="719" alt="밴드스테이지공연장3" src="https://github.com/user-attachments/assets/35a28619-928b-4d20-ad13-827f5104c68b" />
+
+- Bands Page
+<img width="1288" height="719" alt="밴드스테이지아티스트" src="https://github.com/user-attachments/assets/2695f34b-0a73-4ffa-aae1-f2e5edfc1b2e" />
+
+
+- Search Page
+<img width="1288" height="719" alt="밴드스테이지검색페이지" src="https://github.com/user-attachments/assets/065117b8-ac4f-45c5-ae07-5f8191172982" />
+
+
+- Performances Upload Page
+<img width="1288" height="719" alt="밴드스테이지공연등록1" src="https://github.com/user-attachments/assets/ec7f54d6-88c3-41a7-a6b9-dc1ceabfe16e" />
+<img width="1288" height="719" alt="밴드스테이지공연등록2" src="https://github.com/user-attachments/assets/03d6e5c1-612b-4fd4-a47f-4c5dce352490" />
+
+
 
 ## Information Architecture
 
